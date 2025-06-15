@@ -1,0 +1,16 @@
+services:
+ ms-kkoid-storage:
+    image: izi-docker-registry.com/izihardgames/ms-kkoid-storage:latest
+    container_name: ms-kkoid-storage
+    ports:
+      - "49201:49201"
+    environment:
+      - "ASPNETCORE_ENVIRONMENT=Development"
+      - "IZHG_DB_POSTGRES_USER_DEV=postgres"
+      - "IZHG_DB_POSTGRES_PASSWORD_DEV=postgres"
+      - "IZHG_DB_POSTGRES_SERVER_DEV=host.docker.internal"
+      - "IZHG_DB_POSTGRES_PORT_DEV=5432"
+      - "IZHG_EVENT_BUS_RABBITMQ_HOST=host.docker.internal"
+      - "IZHG_EVENT_BUS_RABBITMQ_PORT=5672"
+      - "IZHG_EVENT_BUS_RABBITMQ_USER=admin"
+      - "IZHG_EVENT_BUS_RABBITMQ_PWD=admin"

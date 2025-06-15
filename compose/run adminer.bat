@@ -1,0 +1,1 @@
+docker compose -f docker-compose.adminer.yml up -d

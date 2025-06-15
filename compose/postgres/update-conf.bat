@@ -1,0 +1,1 @@
+docker cp postgresql.conf postgres_container:/var/lib/postgresql/data/

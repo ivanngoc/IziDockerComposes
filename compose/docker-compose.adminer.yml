@@ -1,0 +1,6 @@
+services:
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 50222:8080

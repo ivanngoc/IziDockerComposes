@@ -1,0 +1,187 @@
+﻿services:
+  commissioning_service:
+    container_name: commissioning_container
+    image: ${DOCKER_REGISTRY-}commissioning
+    build:
+      context: .
+      dockerfile: СommissioningService.Server/Dockerfile
+    environment: 
+      - COMM_SERVICE_URI_TRANSPORT=http://localhost:3333/device
+      - COMM_SERVICE_URI_HARDWARE=http://localhost:32769/hardware/create
+      - COMM_SERVICE_URI_SIGNALS=http://localhost:32769/signal/create
+    ports:
+        - 8097:8080
+    networks:
+      - umnogor
+    depends_on:
+      convert_stand:
+        condition: service_started
+      metric-reference-catalog:
+        condition: service_started      
+  
+  link_postgres:
+    container_name: postgres_container
+    image: harbor.umnogor.ru/base_images/postgres:16.2
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: link
+      PGDATA: /data/postgres
+    volumes:
+       - ./data/postgres:/data/postgres
+    healthcheck:
+      test: ["CMD", "pg_isready", "-q", "-d", "link", "-U", "admin"]
+    networks:
+      - umnogor
+    ports:
+      - "9900:5432"
+    restart: unless-stopped    
+
+  convert_stand:
+    container_name: stand_link
+    image: harbor.umnogor.ru/umnogor_development/link:saki_version
+    env_file:
+      - ./env/.env.transport
+    networks:
+      - umnogor
+    ports:
+      - "3333:3333"
+      - "9966:9966"
+    volumes:
+      - ./log:/log/
+    depends_on:
+      link_postgres:
+        condition: service_started    
+
+  metric-reference-catalog:
+    container_name: metric-reference-catalog
+    restart: always
+    image: harbor.umnogor.ru/umnogor_development/metric-reference-catalog:latest
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - POSTGRES_HOST=postgre_metric
+      - POSTGRES_PORT=5432
+      - POSTGRES_DATABASE=
+      - POSTGRES_USERNAME=postgres_metric
+      - POSTGRES_PASSWORD=fPb7zcQKtgch
+    ports:
+       - 32769:80
+       - 32770:443
+    networks:
+       - umnogor
+    #  volumes:
+    #    - ./logCatalog.txt:/app/log.txt
+
+  postgre_metric:
+    image: postgres:15
+    container_name: postgre_metric
+    restart: unless-stopped
+    ports:
+      - "32700:5432"
+    environment:
+      POSTGRES_PASSWORD: fPb7zcQKtgch
+      POSTGRES_USER: postgres_metric
+    volumes:
+      - postgre_metric:/var/lib/postgresql/data
+    networks:
+      - umnogor
+
+  adminer:
+    image: harbor.umnogor.ru/base_images/adminer:4.8.0
+    restart: always
+    container_name: adminer
+    ports:
+      - "8000:8080"
+    networks:
+      - umnogor
+
+  kafka-0:
+    image: harbor.umnogor.ru/base_images/kafka:1.0
+    restart: always
+    container_name: kafka-0
+    ports:
+      - "19092:9092"
+    #   - "19093:9093"
+    hostname: kafka-0
+    environment:
+      - KAFKA_ENABLE_KRAFT=yes
+      - KAFKA_CFG_PROCESS_ROLES=broker,controller
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-0:9092
+      - KAFKA_CFG_BROKER_ID=1
+      - KAFKA_CFG_NODE_ID=1
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-0:9093,2@kafka-1:9093,3@kafka-2:9093
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_KRAFT_CLUSTER_ID=XyfitTaFSqewGDqeTgTL0w
+    volumes:
+      - kafka-v-0:/bitnami/kafka
+    networks:
+      - umnogor
+
+  kafka-1:
+    image: harbor.umnogor.ru/base_images/kafka:1.0
+    restart: always
+    ports:
+      - "29092:9092"
+    #   - "29093:9093"
+    hostname: kafka-1
+    container_name: kafka-1
+    environment:
+      - KAFKA_ENABLE_KRAFT=yes
+      - KAFKA_CFG_PROCESS_ROLES=broker,controller
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-1:9092
+      - KAFKA_CFG_BROKER_ID=2
+      - KAFKA_CFG_NODE_ID=2
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-0:9093,2@kafka-1:9093,3@kafka-2:9093
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_KRAFT_CLUSTER_ID=XyfitTaFSqewGDqeTgTL0w
+    volumes:
+      - kafka-v-1:/bitnami/kafka
+    networks:
+       - umnogor
+
+  kafka-2:
+    image: harbor.umnogor.ru/base_images/kafka:1.0
+    restart: always
+    ports:
+      - "39092:9092"
+    #   - "39093:9093"
+    hostname: kafka-2
+    container_name: kafka-2
+    environment:
+      - KAFKA_ENABLE_KRAFT=yes
+      - KAFKA_CFG_PROCESS_ROLES=broker,controller
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-2:9092
+      - KAFKA_CFG_BROKER_ID=3
+      - KAFKA_CFG_NODE_ID=3
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-0:9093,2@kafka-1:9093,3@kafka-2:9093
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_KRAFT_CLUSTER_ID=XyfitTaFSqewGDqeTgTL0w
+    volumes:
+      - kafka-v-2:/bitnami/kafka
+    networks:
+      - umnogor
+
+volumes:
+  postgre_metric:
+    driver: local
+  kafka-v-0:
+    driver: local
+  kafka-v-1:
+    driver: local
+  kafka-v-2:
+    driver: local
+
+
+networks:
+  umnogor:
+    name: www_umnogor

@@ -1,0 +1,43 @@
+# version: '3.6'
+services:
+  # torproxy:
+  #   image: dperson/torproxy
+  #   container_name: proxy-torproxy
+  #   network_mode: "host"
+  #   environment:
+  #     - SOME=VALUE  
+  #   ports:
+  #     - '8118:8118'
+  #     - '9050:9050'   
+
+  # tor-socks-proxy:
+  #   image: peterdavehello/tor-socks-proxy
+  #   container_name: tor-socks-proxy
+  #   environment:
+  #     - SOME=VALUE  
+  #   ports:
+  #     - '9150:9150'   
+  #     - '8853:8853'
+
+  # tor-privoxy:
+  #   image: dockage/tor-privoxy
+  #   container_name: tor-privoxy
+  #   build:
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - '9050:9050' 
+  #     - '9051:9051' 
+  #     - '8118:8118'
+
+  litehex:
+    image: litehex/torproxy:1.0.0-canary.1
+    container_name: litehex-container
+    ports:
+      - 82:1080
+      - 83:8080
+    environment:
+      # - TOR_CONTROL_PORT=9060 
+      # - TOR_CONTROL_PASSWD=super-secure-password 
+      - DUMMY=DUMMY
+      - TOR_UseBridges=1
+      #- TOR_Bridge=obfs4 54.38.194.67:11987 02D98A9AA9E7BBA7ED1BF9A3E23318F50B3E8657 cert=QfiAaHlLQc9d3Y75WtvYD8Vwi/M4Dfm5Bv8O6mLJP+yXee4CoxJjCTeVLjFI1jyCXBo7Zw iat-mode=0
