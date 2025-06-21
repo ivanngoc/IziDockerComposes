@@ -1,0 +1,23 @@
+services:
+  cassandra-web:
+    image: ipushc/cassandra-web
+    container_name: cassandra-web
+    depends_on:
+      cassandra:
+        condition: service_started
+    ports:
+      - "3050:80"
+    environment:
+      HOST_PORT: ":80"
+      # READ_ONLY: false 
+      CASSANDRA_HOST: cassandra
+      CASSANDRA_PORT: 9042
+      # CASSANDRA_USERNAME: cassandra
+      # CASSANDRA_PASSWORD: cassandra
+      # APP_PATH: path
+    networks:
+      - cassandra-net
+
+
+networks:
+  cassandra-net:

@@ -1,0 +1,1 @@
+docker cp "C:\Users\ngoc\My Drive\#26 Docker\compose\proxies\torrc.conf" 844bb647639640bb5af5d8d924add0d80f35bbd7acc75609a8275d96e495d1d9:/etc/torrc.d/

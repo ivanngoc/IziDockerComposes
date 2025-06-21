@@ -1,0 +1,273 @@
+version: '3.9'
+
+services:
+  metricsprocessing-seconds:
+    container_name: metric-processing-seconds
+    image: ${DOCKER_REGISTRY-}metricprocessing
+    build:
+      args:
+        cert_pas: "61497074-f144-4940-b7c3-a888646ced08"
+      context: .
+      dockerfile: src/MetricProcessing/Dockerfile
+    environment:
+      - BUFFER_SIZE=5000
+      - REDIS_URL=redis-metric:6379
+      - VM_CLIENT_BASE_URL=http://vm:8428
+      - CATALOG_CLIENT_BASE_URL=http://metric_catalog:80
+      - VM_TO_WRITE_URL=http://vm:4242
+      
+      #      - Discrete=seconds
+      # - ASPNETCORE_Kestrel__Certificates__Default__Password="61497074-f144-4940-b7c3-a888646ced25"
+      # - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+#    volumes:
+#      - ./logS.txt:/app/log.txt
+    #   - ${HOME}/.aspnet/https:/https/
+
+  vm:
+    container_name: victoria-metrics
+    image: harbor.umnogor.ru/base_images/victoria-metrics:v1.100.0
+    command: -opentsdbListenAddr=:4242
+    ports:
+      - "8428:8428"
+      - 4242:4242
+    volumes:
+      - vm_data:/victoria-metrics-data
+  
+  redis-metric:
+    image: harbor.umnogor.ru/base_images/redis:7.2
+    container_name: "redis-metric"
+    ports:
+      - "6379:6379"
+  
+  kafka-0:
+    image: harbor.umnogor.ru/base_images/kafka:1.0
+    restart: always
+    ports:
+      - "19092:9092"
+      - "9094:9094"
+    #   - "19093:9093"
+    hostname: kafka-0
+    environment:
+      - KAFKA_ENABLE_KRAFT=yes
+      - KAFKA_CFG_PROCESS_ROLES=broker,controller
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,PLAINTEXT_HOST://kafka-0:9094
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-0:9092
+      #- KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-0:9092,PLAINTEXT_HOST://localhost:9094
+      - KAFKA_CFG_BROKER_ID=1
+      - KAFKA_CFG_NODE_ID=1
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-0:9093,2@kafka-1:9093,3@kafka-2:9093
+      #- KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-0:9093
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_KRAFT_CLUSTER_ID=XyfitTaFSqewGDqeTgTL0w
+    volumes:
+      - /bitnami/kafka
+  kafka-1:
+    image: harbor.umnogor.ru/base_images/kafka:1.0
+    restart: always
+    ports:
+      - "29092:9092"
+    #   - "29093:9093"
+    hostname: kafka-1
+    environment:
+      - KAFKA_ENABLE_KRAFT=yes
+      - KAFKA_CFG_PROCESS_ROLES=broker,controller
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-1:9092
+      - KAFKA_CFG_BROKER_ID=2
+      - KAFKA_CFG_NODE_ID=2
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-0:9093,2@kafka-1:9093,3@kafka-2:9093
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_KRAFT_CLUSTER_ID=XyfitTaFSqewGDqeTgTL0w
+    volumes:
+      - /bitnami/kafka
+  kafka-2:
+    image: harbor.umnogor.ru/base_images/kafka:1.0
+    restart: always
+    ports:
+      - "39092:9092"
+    #   - "39093:9093"
+    hostname: kafka-2
+    environment:
+      - KAFKA_ENABLE_KRAFT=yes
+      - KAFKA_CFG_PROCESS_ROLES=broker,controller
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-2:9092
+      - KAFKA_CFG_BROKER_ID=3
+      - KAFKA_CFG_NODE_ID=3
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-0:9093,2@kafka-1:9093,3@kafka-2:9093
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_KRAFT_CLUSTER_ID=XyfitTaFSqewGDqeTgTL0w
+    volumes:
+      - /bitnami/kafka
+
+  kafka-ui:
+    image: harbor.umnogor.ru/base_images/kafka-ui:1.0
+    restart: always
+    depends_on:
+      - kafka-0
+      - kafka-1
+      - kafka-2
+    ports:
+      - "80:8080"
+    environment:
+      - SPRING_SECURITY_USER_PASSWORD=vfnhbrcysqgfhjkm
+      - KAFKA_CLUSTERS_0_NAME=umnogor
+      - KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS=kafka-0:9092
+
+  metricsapigate:
+    image: harbor.umnogor.ru/umnogor_development/metricapigate:v0.0.58-test-test
+    restart: always
+    ports:
+      - 8123:80
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      
+        
+  testkafkapublish:
+    image: ${DOCKER_REGISTRY-}testkafkapublish
+    build:
+      args:
+        cert_pas: "61497074-f144-4940-b7c3-a888646ced49"
+      context: .
+      dockerfile: src/TestKafkaPublish/Dockerfile
+    environment:
+      - VM_CLIENT_BASE_URL=http://vm:8428
+      - CATALOG_CLIENT_BASE_URL=http://metric_catalog:80
+
+      # - ASPNETCORE_Kestrel__Certificates__Default__Password="61497074-f144-4940-b7c3-a888646ced24"
+      # - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+    # volumes:
+    #   - ${HOME}/.aspnet/https:/https/
+    
+  metric_catalog:
+    image:  harbor.umnogor.ru/umnogor_development/metric-reference-catalog:v0.0.47-test-test
+    restart: always
+    ports:
+      - 8020:80
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - POSTGRES_HOST=postgre_metric
+      - POSTGRES_PORT=5432
+      - POSTGRES_DATABASE=
+      - POSTGRES_USERNAME=postgres_metric
+      - POSTGRES_PASSWORD=fPb7zcQKtgch
+    depends_on:
+      postgre_metric:
+        condition: service_started
+        
+  postgre_metric:
+    container_name: postgre_metric
+    image: harbor.umnogor.ru/base_images/postgres:16.2
+    ports:
+      - 5432:5432
+    volumes:
+      - postgre_data:/posgre/postgre_data
+    environment:
+      - POSTGRES_PASSWORD=fPb7zcQKtgch
+      - POSTGRES_USER=postgres_metric
+
+#  adminer:
+#    image: adminer
+#    container_name: my_adminer
+#    ports:
+#      - "8080:8080"
+#    depends_on:
+#      - acknowledgement_postgre
+#      - postgre_metric
+
+#  acknowledgement:
+#    image: registry.umnogor.org:5050/umnogor/backend/images_registry/acknowledgment-service:latest
+#    depends_on:
+#      metric_catalog:
+#        condition: service_started
+#      kafka-0:
+#        condition: service_started
+#      kafka-1:
+#        condition: service_started
+#      kafka-2:
+#        condition: service_started
+#    ports:
+#      - "5270:80"
+#    environment:
+##      - ASPNETCORE_ENVIRONMENT=Development
+#      - ASPNETCORE_URLS=https://+:443;http://+:80
+#  
+#  acknowledgement_postgre:
+#    image: postgres
+#    container_name: acknowledgement_db
+#    environment:
+#      - POSTGRES_USER=acknowledgement_postgres
+#      - POSTGRES_PASSWORD=Ri7z2kML9pxS
+#      - POSTGRES_DB=exceeding
+#    ports:
+#      - "5271:5432"
+
+
+volumes:
+  kafka_0_data:
+    driver: local
+  kafka_1_data:
+    driver: local
+  kafka_2_data:
+    driver: local
+  vm_data:
+    driver: local
+  postgre_data:
+    driver: local
+    
+    
+    #  metricsprocessing-minutes:
+    #    container_name: metric-processing-minutes
+    #    image: ${DOCKER_REGISTRY-}metricprocessing
+    #    build:
+    #      args:
+    #        cert_pas: "61497074-f144-4940-b7c3-a888646ced08"
+    #      context: .
+    #      dockerfile: src/MetricProcessing/Dockerfile
+    #    environment:
+    #      - Discrete=minutes
+    #      # - ASPNETCORE_Kestrel__Certificates__Default__Password="61497074-f144-4940-b7c3-a888646ced25"
+    #      # - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+    #    volumes:
+    #      - ./logM.txt:/app/log.txt
+    ##        - ${HOME}/.aspnet/https:/https/
+    #
+    #  metricsprocessing-hours:
+    #     container_name: metric-processing-hours
+    #     image: ${DOCKER_REGISTRY-}metricprocessing
+    #     build:
+    #       args:
+    #         cert_pas: "61497074-f144-4940-b7c3-a888646ced08"
+    #       context: .
+    #       dockerfile: src/MetricProcessing/Dockerfile
+    #     environment:
+    #       - Discrete=hours
+    #      # - ASPNETCORE_Kestrel__Certificates__Default__Password="61497074-f144-4940-b7c3-a888646ced25"
+    #       # - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+    #     volumes:
+    #       - ./logH.txt:/app/log.txt
+    #     #   - ${HOME}/.aspnet/https:/https/
+
+    #  metricsprocessing:
+    #     container_name: metric-processing
+    #     image: ${DOCKER_REGISTRY-}metricprocessing
+    #     build:
+    #       args:
+    #         cert_pas: "61497074-f144-4940-b7c3-a888646ced08"
+    #       context: .
+    #       dockerfile: src/MetricProcessing/Dockerfile
+    ##        environment:
+    ##          - Discrete=seconds
+    #      # - ASPNETCORE_Kestrel__Certificates__Default__Password="61497074-f144-4940-b7c3-a888646ced25"
+    #       # - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+    #     volumes:
+    #      - ./logs.txt:/app/log.txt
+    #    #   - ${HOME}/.aspnet/https:/https/

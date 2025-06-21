@@ -1,0 +1,18 @@
+version: '3.6'
+services:
+  gitlab:
+    image: gitlab/gitlab-ee:latest
+    container_name: gitlab
+    restart: always
+    hostname: 'gitlab'
+    environment:
+      - SOME=VALUE  
+    ports:
+      - '50511:80'
+      - '50512:22'
+      - '60123:443'
+    volumes:
+      - '$GITLAB_HOME/config:/etc/gitlab'
+      - '$GITLAB_HOME/logs:/var/log/gitlab'
+      - '$GITLAB_HOME/data:/var/opt/gitlab'
+    shm_size: '256m'
