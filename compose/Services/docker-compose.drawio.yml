@@ -1,0 +1,12 @@
+services:
+  drawio:
+    image: jgraph/drawio
+    container_name: drawio
+    restart: unless-stopped
+    ports:
+      - "58080:8080"
+      - "50443:443"
+    # environment:
+      # - DRAWIO_LIGHTBOX=false  # Optional settings
+      # - DRAWIO_HIDE_HEADER=false
+      # - DRAWIO_VIEWER_URL=https://viewer.diagrams.net
