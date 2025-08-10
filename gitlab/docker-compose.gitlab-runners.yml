@@ -1,0 +1,14 @@
+services:
+  gitlab-runner:
+    image: gitlab/gitlab-runner:alpine
+    container_name: gitlab-runner
+    restart: always
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock'
+      - '${GITLAB_RUNNER_HOME}/config:/etc/gitlab-runner'
+    networks:
+      - gitlab-network
+
+networks:
+  gitlab-network:
+    external: true

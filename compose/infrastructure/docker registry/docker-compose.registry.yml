@@ -1,0 +1,16 @@
+services:
+  registry:
+    image: registry:latest
+    container_name: registry
+    ports:
+      - "5000:5000"
+    networks:
+      - shared
+      - global
+      
+networks:
+  shared:
+   external: true
+  global:
+   external: true
+     
