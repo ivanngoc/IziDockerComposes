@@ -27,6 +27,7 @@ services:
       - '/var/run/docker.sock:/var/run/docker.sock'
       - '${GITLAB_RUNNER_HOME}/runner-3/config:/etc/gitlab-runner'
     networks:
+      - gitlab-network
 
 
   gitlab-runner-4:
