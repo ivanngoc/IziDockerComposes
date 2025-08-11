@@ -1,11 +1,41 @@
 services:
-  gitlab-runner:
+  gitlab-runner-1:
     image: gitlab/gitlab-runner:alpine
     container_name: gitlab-runner
     restart: always
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock'
-      - '${GITLAB_RUNNER_HOME}/config:/etc/gitlab-runner'
+      - '${GITLAB_RUNNER_HOME}/runner-1/config:/etc/gitlab-runner'
+    networks:
+      - gitlab-network
+
+  gitlab-runner-2:
+    image: gitlab/gitlab-runner:alpine
+    container_name: gitlab-runner
+    restart: always
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock'
+      - '${GITLAB_RUNNER_HOME}/runner-2/config:/etc/gitlab-runner'
+    networks:
+      - gitlab-network
+
+  gitlab-runner-3:
+    image: gitlab/gitlab-runner:alpine
+    container_name: gitlab-runner
+    restart: always
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock'
+      - '${GITLAB_RUNNER_HOME}/runner-3/config:/etc/gitlab-runner'
+    networks:
+
+
+  gitlab-runner-4:
+    image: gitlab/gitlab-runner:alpine
+    container_name: gitlab-runner
+    restart: always
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock'
+      - '${GITLAB_RUNNER_HOME}/runner-4/config:/etc/gitlab-runner'
     networks:
       - gitlab-network
 
