@@ -4,3 +4,20 @@ services:
     restart: always
     ports:
       - 50222:8080
+    environment:
+      ADMINER_DESIGN: 'hever'
+      ADMINER_DEFAULT_SERVER: 'localhost'
+
+  adminer_pwdless:
+    image: adminer
+    container_name: adminer
+    ports:
+      - "8081:8080"
+    environment:
+      # - ADMINER_PLUGINS=""
+      ADMINER_DESIGN: 'hever'
+      ADMINER_DEFAULT_SERVER: 'localhost'
+    volumes:
+      # Mount your host folder with SQLite files into /db inside the container
+      - ./apps/TowerLogger/app.db:/var/www/html/app.db
+      - ./adminer/login-password-less.php:/var/www/html/plugins-enabled/login-password-less.php
