@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: postgres
+    restart: always
+    network_mode: host
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      #- POSTGRES_LOGGING_LEVEL=all
+      # - PGOPTIONS="-c log_statement=all -c log_duration=on"
+    volumes:
+      - ${IZHG_PG_DATA_DIR}:/var/lib/postgresql/data # Persist data with a volume
+    ports:
+      - "5432:5432"
+
+volumes:
+  pg_vol:
+    driver: local
