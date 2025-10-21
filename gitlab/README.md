@@ -3,7 +3,8 @@ docker network create gitlab-network
 
 # ENV variables
 GITLAB_HOME = "C:\Users\ivan\Documents\gitlab"
-
+GITLAB_RUNNER_HOME
+GITLAB_EXTERNAL_URL
 # CLI
 docker compose -f docker-compose.gitlab.yml up -d
 docker compose -f docker-compose.gitlab-runners.yml up -d

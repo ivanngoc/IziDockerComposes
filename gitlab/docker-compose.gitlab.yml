@@ -4,18 +4,20 @@ services:
     container_name: gitlab
     restart: always
     hostname: 'gitlab'
+    # network_mode: 'host'
     environment:
       SOME: VALUE
       # https://forum.gitlab.com/t/gitlab-docker-not-working-if-external-url-is-set/4110/6
       # надо чтобы порты совпадали (дефолтный 80 порт => 4080) 
-      GITLAB_OMNIBUS_CONFIG: |
-        external_url 'http://localhost:4080';
-        nginx['listen_port'] = 4080;
-        gitlab_rails['internal_api_url'] = 'http://gitlab:4080';
-        gitlab_rails['gitlab_host'] = 'gitlab';
-        gitlab_rails['gitlab_port'] = 4080;
-        gitlab_rails['gitlab_https'] = false;
+      # GITLAB_OMNIBUS_CONFIG: |
+      #   external_url '${GITLAB_EXTERNAL_URL}';
+      #   nginx['listen_port'] = 4080;
+      #   gitlab_rails['internal_api_url'] = 'http://gitlab:4080';
+      #   gitlab_rails['gitlab_host'] = 'gitlab';
+      #   gitlab_rails['gitlab_port'] = 4080;
+      #   gitlab_rails['gitlab_https'] = false;
     ports:
+      # - '4080:80'
       - '4080:4080'
       - '4022:22'
       - '4443:443'
