@@ -4,6 +4,7 @@ services:
     restart: always
     ports:
       - 50222:8080
+    network_mode: host
     environment:
       ADMINER_DESIGN: 'hever'
       ADMINER_DEFAULT_SERVER: 'localhost'
