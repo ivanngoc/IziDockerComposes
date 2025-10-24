@@ -2,9 +2,16 @@ services:
   rabbitmq:
     image: rabbitmq:3.12-management
     container_name: rabbitmq
+    networks:
+      - shared
     ports:
       - "5672:5672"  # AMQP port
       - "15672:15672"  # Management UI port
     environment:
       RABBITMQ_DEFAULT_USER: admin
       RABBITMQ_DEFAULT_PASS: admin
+
+networks:
+  shared:
+   external: true
+     

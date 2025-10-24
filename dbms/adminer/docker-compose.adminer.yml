@@ -1,0 +1,35 @@
+services:
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "50222:8080"
+      # - "127.0.0.1:50222:8080"
+    # network_mode: host
+    networks:
+      - shared
+    environment:
+      # ADMINER_PORT: 50222 #not working
+      ADMINER_DESIGN: "hever"
+      ADMINER_DEFAULT_SERVER: "postgres"
+    # command: php -S 0.0.0.0:50222 -t /var/www/html #запускается но не обслуживается
+    # volumes:
+    # - ./ports.conf:/etc/apache2/ports.conf:ro #not working
+
+  # adminer_pwdless:
+  #   image: adminer
+  #   container_name: adminer
+  #   ports:
+  #     - "8081:8080"
+  #   environment:
+  #     # - ADMINER_PLUGINS=""
+  #     ADMINER_DESIGN: 'hever'
+  #     ADMINER_DEFAULT_SERVER: 'localhost'
+  #   volumes:
+  #     # Mount your host folder with SQLite files into /db inside the container
+  #     - ./apps/TowerLogger/app.db:/var/www/html/app.db
+  #     - ./adminer/login-password-less.php:/var/www/html/plugins-enabled/login-password-less.php
+networks:
+  shared:
+   external: true
+     

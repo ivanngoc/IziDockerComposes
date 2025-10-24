@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:17
-    container_name: postgres
+    container_name: postgres-host
     restart: always
     network_mode: host
     environment:
@@ -17,3 +17,4 @@ services:
 volumes:
   pg_vol:
     driver: local
+     
