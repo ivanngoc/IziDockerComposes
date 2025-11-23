@@ -1,6 +1,7 @@
 services:
   rabbitmq:
     image: rabbitmq:3.12-management
+    restart: always
     container_name: rabbitmq
     networks:
       - shared
