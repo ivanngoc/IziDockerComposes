@@ -1,0 +1,44 @@
+services:
+  mediawiki_inner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - 40402:80
+    volumes:
+      - wiki-data:/var/www/html
+    environment:
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=1234
+      - MYSQL_DATABASE=mediawikimysql
+      - IZHG_EXTERNAL_WIKI=false
+      - IZHG_DB_SERVER=host.docker.internal:3306
+    networks:
+      - wiki
+
+  mediawiki_external:
+    image: mediawiki:1.40.3
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - 40403:80
+    volumes:
+      - wiki-data:/var/www/html
+    environment:
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=1234
+      - MYSQL_DATABASE=mediawikimysql
+      - IZHG_EXTERNAL_WIKI=true
+      - IZHG_DB_SERVER=host.docker.internal:3306
+
+
+networks:
+  wiki:
+    driver: bridge
+    
+volumes:
+  wiki-data:
+      

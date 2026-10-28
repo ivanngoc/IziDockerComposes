@@ -1,0 +1,12 @@
+services:
+  mitmproxy:
+    image: mitmproxy/mitmproxy
+    container_name: mitmproxy
+    ports:
+      - "8080:8080"    # Порт прокси-сервера
+      - "8081:8081"    # Веб-интерфейс (mitmweb)
+    volumes:
+      - ./certs:/home/mitmproxy/.mitmproxy # Для сохранения сертификатов
+      - ./certs2:/usr/local/share/ca-certificates # Для сохранения сертификатов
+      
+    command: mitmweb --set web_host=0.0.0.0
